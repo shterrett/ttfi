@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 858e0d5c87046c19a7d9ea2645104b5de06729298218db7b28217b5cd9a30272
+-- hash: 8bafb538b19af8cc7275bf6d121c6a154e9c801e1673e34f3548b663d9d0bb2d
 
 name:           ttfi
 version:        0.1.0.0
@@ -15,7 +15,6 @@ author:         Stuart H Terrett
 maintainer:     shterrett@gmail.com
 copyright:      2020 Stuart H Terrett
 license:        MIT
-license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
@@ -26,7 +25,9 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      SectionTwo.Final
+      SectionTwo.FinalMult
+      SectionTwo.Initial
   other-modules:
       Paths_ttfi
   hs-source-dirs:
