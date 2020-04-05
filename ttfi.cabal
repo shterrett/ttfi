@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8bafb538b19af8cc7275bf6d121c6a154e9c801e1673e34f3548b663d9d0bb2d
+-- hash: 939db7da6cc4ff376221456200103a235aa28447b4f1cc608d954e96df93ca50
 
 name:           ttfi
 version:        0.1.0.0
@@ -28,6 +28,7 @@ library
       SectionTwo.Final
       SectionTwo.FinalMult
       SectionTwo.Initial
+      SectionTwo.Iso
   other-modules:
       Paths_ttfi
   hs-source-dirs:
