@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module SectionTwo.Iso where
 
@@ -11,8 +12,8 @@ iToF (Neg e) = neg (iToF e)
 iToF (Add e1 e2) = add (iToF e1) (iToF e2)
 iToF (Mult e1 e2) = mult (iToF e1) (iToF e2)
 
-fToI :: (ExpSYM a, MultSYM a) => a -> Exp
-fToI = undefined
+fToI :: (forall a. (ExpSYM a, MultSYM a) => a) -> Exp
+fToI x = x
 
 instance ExpSYM Exp where
     lit = Lit
