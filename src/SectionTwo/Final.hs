@@ -16,13 +16,24 @@ instance ExpSYM Int where
     neg e = -e
     add e1 e2 = e1 + e2
 
+instance ExpSYM String where
+    lit n = show n
+    neg e = "-" <> e
+    add e1 e2 = "(" <> e1 <> " + " <> e2 <> ")"
+
 eval :: Int -> Int
 eval = id
 
-instance ExpSYM String where
-    lit = show
-    neg e = "(-" ++ e ++ ")"
-    add e1 e2 = "(" ++ e1 ++ " + " ++ e2 ++ ")"
-
 view :: String -> String
 view = id
+
+instance ExpSYM RoundBrackets where
+    lit = RoundBrackets . show
+    neg (RoundBrackets e) = RoundBrackets $ "(-" ++ e ++ ")"
+    add (RoundBrackets e1) (RoundBrackets e2) = RoundBrackets $ "(" ++ e1 ++ " + " ++ e2 ++ ")"
+
+newtype RoundBrackets = RoundBrackets { unRound :: String }
+newtype SquareBrackets = SquareBrackets { unSquare :: String }
+
+viewRound :: RoundBrackets -> String
+viewRound = unRound
