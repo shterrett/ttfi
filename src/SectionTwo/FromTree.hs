@@ -39,14 +39,18 @@ check_consume :: (ExpSYM a) => (a -> IO ()) -> Either Err a -> IO ()
 check_consume _ (Left e) = putStrLn $ "Error " <> e
 check_consume f (Right a) = f a
 
-dup_consume ::  (ExpSYM a, ExpSYM a') => (a -> String) -> (a, a') -> IO a'
+dup_consume ::  (ExpSYM a, ExpSYM a', Show b) => (a -> b) -> (a, a') -> IO a'
 dup_consume f a = print (f a1) >> pure a2
   where (a1, a2) = duplicate a
 
 thrice :: (Int, (String, Tree)) -> IO ()
 thrice a = dup_consume (show . eval) a >>= dup_consume view >>= print . toTree
 
-fromTreeExt :: (ExpSYM repr) => (Tree -> Either Err repr) -> Tree -> Either Err repr
+fromTreeExt ::
+  (ExpSYM repr)
+  => (Tree -> Either Err repr)
+  -> Tree
+  -> Either Err repr
 fromTreeExt _ (Node "Lit" [Leaf n]) = lit <$> safeRead n
 fromTreeExt self (Node "Neg" [e]) = neg <$> self e
 fromTreeExt self (Node "Add" [e1, e2]) = add <$> self e1 <*> self e2
