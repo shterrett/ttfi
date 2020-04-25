@@ -35,7 +35,10 @@ instance (ExpSYM repr, MultSYM repr) => MultSYM (CtxM repr -> repr) where
     mult e1 e2 = \ctx -> e1 (LCM (e2 ctx))
 
 instance (ExpSYM repr, MultSYM repr) => MultSYM (CtxA repr -> repr) where
-    mult e1 e2 = \ctx -> mult (e1 ctx) (e2 ctx)
+    mult e1 e2 = \case
+                    NonLCA -> mult (e1 NonLCA) (e2 NonLCA)
+                    -- add (mul e1 e2) ea
+                    LCA ea -> add (mult (e1 NonLCA) (e2 NonLCA)) ea
 
 instance (ExpSYM repr, MultSYM repr) => ExpSYM (CtxM repr -> repr) where
     lit n = \case
@@ -47,7 +50,7 @@ instance (ExpSYM repr, MultSYM repr) => ExpSYM (CtxM repr -> repr) where
     add e1 e2 = \case
                   NonLCM -> add (e1 NonLCM) (e2 NonLCM)
                   -- mult e3 (add e1 e2)
-                  LCM e3 -> mult e3 (add (e1 NonLCM) (e2 NonLCM))
+                  LCM e3 -> mult (add (e1 NonLCM) (e2 NonLCM)) e3
 
 flattenA :: (ExpSYM repr) => (CtxA repr -> repr) -> repr
 flattenA e = e NonLCA
@@ -60,6 +63,9 @@ normalize ::
   => (PushNeg.Ctx -> CtxA (CtxM repr -> repr) -> CtxM repr -> repr)
   -> repr
 normalize = flattenM . flattenA . push_neg
+
+example0 :: (ExpSYM repr, MultSYM repr) => repr
+example0 = add (mult (lit 3) (lit 4)) (lit 2)
 
 example1 :: (ExpSYM repr, MultSYM repr) => repr
 example1 = add (mult (add (lit 1) (neg (lit 2))) (lit 4)) (lit 3)
