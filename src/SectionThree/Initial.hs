@@ -10,6 +10,7 @@ data Exp env t where
     L :: Exp (a, env) b -> Exp env (a -> b)
     A :: Exp env (a -> b) -> Exp env a -> Exp env b
 
+
 data Var env t where
     VZ :: Var (t, env) t
     VS :: Var env t -> Var (a, env) t
