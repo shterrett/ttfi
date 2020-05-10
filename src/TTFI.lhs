@@ -18,6 +18,7 @@
 \frametitle{Preamble}
 
 \begin{code}
+{-# LANGUAGE GADTs #-}
 module TTFI where
 \end{code}
 
@@ -244,5 +245,107 @@ factorial = fix (\self -> lam (\n ->
                    (mul n (self `app` (add n (int (-1)))))))
 \end{code}
 (hint: now's a good time to \code{stack ghci src/TTFI.hs})
+\end{frame}
+
+\begin{frame}
+\frametitle{contrast: initial encoding}
+\begin{code}
+data SymI h a where
+  INT :: Int -> SymI h Int
+  Add :: SymI h Int -> SymI h Int -> SymI h Int
+  Mul :: SymI h Int -> SymI h Int -> SymI h Int
+  BOOL :: Bool -> SymI h Bool
+  Lte :: SymI h Int -> SymI h Int -> SymI h Bool
+  When :: SymI h Bool -> SymI h a -> SymI h a -> SymI h a
+  Var :: h a -> SymI h a
+  Lam :: (SymI h a -> SymI h b) -> SymI h (a -> b)
+  App :: SymI h (a -> b) -> SymI h a -> SymI h b
+  Fix :: (SymI h a -> SymI h a) -> SymI h a
+\end{code}
+\code{h} is the evaluation context (eg \code{R} or \code{S} etc)
+\end{frame}
+
+\begin{frame}
+\frametitle{initial interpreter}
+Here we evaluate in \code{R}
+\begin{code}
+evalI :: SymI R a -> a
+evalI (INT i) = i
+evalI (Add x y) = (evalI x) + (evalI y)
+evalI (Mul x y) = (evalI x) * (evalI y)
+evalI (BOOL b) = b
+evalI (Lte x y) = (evalI x) <= (evalI y)
+evalI (When b t f) = if (evalI b) then (evalI t) else (evalI f)
+evalI (Var x) = unR x
+evalI (Lam f) = evalI . f . Var . R
+evalI (App f a) = (evalI f) (evalI a)
+evalI (Fix f) = evalI (fx f)
+  where fx g = g (fx g)
+\end{code}
+\end{frame}
+
+\begin{frame}
+\frametitle{expression problem}
+Adding interpreters to \code{SymI} is straightforward
+\begin{spec}
+pprintI :: Sym S a -> String
+pprintT = ...
+\end{spec}
+\pause
+But adding new operations isn't possible
+\pause
+\newline
+\newline
+Because of the contravariant \code{SymI} in \code{Lam}, we can't use the
+coproduct-of-functors representation, because \code{SymI} is not representable
+as the fixpoint-of-a-functor
+\end{frame}
+
+\begin{frame}
+\frametitle{bijection}
+We can show the final and initial embeddings are equivalent by establishing a
+bijection
+\end{frame}
+
+\begin{frame}
+\frametitle{final to initial}
+\begin{code}
+instance AddSym (SymI h) where
+  int = INT
+  add = Add
+instance MultSym (SymI h) where
+  mul = Mul
+instance BoolSym (SymI h) where
+  bool = BOOL
+  lte = Lte
+  when = When
+instance LamSym (SymI h) where
+  lam = Lam
+  app = App
+instance FixSym (SymI h) where
+  fix = Fix
+
+instance Symantics (SymI h)
+
+fToI :: SymI h a -> SymI h a
+fToI = id
+\end{code}
+\end{frame}
+
+\begin{frame}
+\frametitle{initial to final}
+\begin{code}
+iToF :: (Symantics repr) => SymI repr a -> repr a
+iToF (INT x) = int x
+iToF (Add x y) = add (iToF x) (iToF y)
+iToF (Mul x y) = mul (iToF x) (iToF y)
+iToF (BOOL b) = bool b
+iToF (Lte x y) = lte (iToF x) (iToF y)
+iToF (When b t f) = when (iToF b) (iToF t) (iToF f)
+iToF (Var a) = a
+iToF (Lam f) = lam (\x -> iToF (f (Var x)))
+iToF (App f a) = app (iToF f) (iToF a)
+iToF (Fix f) = fix (\self -> iToF (f (Var self)))
+\end{code}
 \end{frame}
 \end{document}
