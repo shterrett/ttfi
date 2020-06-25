@@ -29,6 +29,7 @@ class LSym (repr :: * -> * -> * -> *) where
 -- so that instances can place constraints on them
 class LLam repr hi ho where
     lam :: repr (F a, hi) (U, ho) b -> repr hi ho (a -> b)
+    lamU :: repr hi ho b -> repr (F a, hi) (U, ho) b -- "affine"/"relaxation"/"don't use the arg"
 
 ex1 :: LSym repr => repr hi hi Int
 ex1 = add (int 1) (int 2)
@@ -40,7 +41,7 @@ ex1 = add (int 1) (int 2)
 -- • In the second argument of ‘add’, namely ‘z’
 --   In the first argument of ‘lam’, namely ‘(add z z)’
 --   In the expression: lam (add z z)
--- ex2 = lam (add z z)
+-- ex2 = lam (add (z :: _) (z :: _))
 
 -- Not linear because `z` is not used at all
 -- • Couldn't match type ‘F a’ with ‘U’
@@ -52,7 +53,7 @@ ex1 = add (int 1) (int 2)
 -- • Relevant bindings include
 --     ex3 :: repr ho ho (a -> Int)
 --       (bound at /Users/stuart/coding/ttfi/src/Linear.hs:42:1)
--- ex3 = lam (int 1)
+ex3 = lamU (int 1)
 
 -- Linear because each lambda's argument, `z` and `s z`, is used exactly
 -- once
@@ -118,6 +119,7 @@ instance HiHo hi ho => HiHo (F a, hi) (U, ho) where
 instance HiHo hi ho => LLam R hi ho where
     lam e = R $ \hi -> (f hi, hiho hi)
      where f hi x = fst $ unR e (F x, hi)
+    lamU e = R $ \(_, hi) -> (Used,) <$> unR e hi
 
 eval :: R () ho a -> a
 eval e = fst $ unR e ()
